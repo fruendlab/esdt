@@ -9,6 +9,8 @@ ResponseCollection = namedtuple('ResponseCollection',
 
 
 def dvc_for_category(responses_1, responses_2, dprimes, criteria):
+    responses_1 = np.asarray(responses_1)
+    responses_2 = np.asarray(responses_2)
     responses = ResponseCollection(
         np.logical_and(responses_1 == 1, responses_2 == 1).mean(),
         np.logical_and(responses_1 == 1, responses_2 == 0).mean(),
