@@ -1,10 +1,11 @@
+import numpy as np
 from scipy import stats
 
 
 def basic_sdt_analysis(targets, responses):
-    hits = responses[targets].mean()
-    fa = responses[1-targets].mean()
-    return basic_sdt(hits, fa)
+    hits = np.asarray(responses)[np.asarray(targets, bool)]
+    fa = np.asarray(responses)[np.logical_not(np.asarray(targets, bool))]
+    return basic_sdt(hits.mean(), fa.mean())
 
 
 def basic_sdt(hit_rate, false_alarm_rate):
