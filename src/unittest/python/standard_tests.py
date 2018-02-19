@@ -1,5 +1,6 @@
 from unittest import TestCase, mock
 
+import numpy as np
 from scipy import stats
 
 from esdt import standard
@@ -23,3 +24,17 @@ class TestBasicSDT(TestCase):
         respons = [0, 0, 0, 0, 1, 1, 1, 1, 0, 0]
         standard.basic_sdt_analysis(targets, respons)
         mock_basic.assert_called_once_with(0.6, 0.2)
+
+    def test_hits1(self):
+        targets = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+        respons = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+        d, g = standard.basic_sdt_analysis(targets, respons)
+        self.assertLess(d, np.inf)
+        self.assertLess(g, np.inf)
+
+    def test_fa1(self):
+        targets = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+        respons = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0]
+        d, g = standard.basic_sdt_analysis(targets, respons)
+        self.assertLess(d, np.inf)
+        self.assertLess(g, np.inf)

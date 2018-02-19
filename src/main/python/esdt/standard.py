@@ -5,7 +5,11 @@ from scipy import stats
 def basic_sdt_analysis(targets, responses):
     hits = np.asarray(responses)[np.asarray(targets, bool)]
     fa = np.asarray(responses)[np.logical_not(np.asarray(targets, bool))]
-    return basic_sdt(hits.mean(), fa.mean())
+    ntargets = np.sum(targets)
+    nblank = len(targets) - ntargets
+    hits = np.clip(hits.mean(), 0.5/ntargets, 1-0.5/ntargets)
+    fa = np.clip(fa.mean(), 0.5/nblank, 1-0.5/nblank)
+    return basic_sdt(hits, fa)
 
 
 def basic_sdt(hit_rate, false_alarm_rate):
