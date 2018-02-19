@@ -24,7 +24,8 @@ def dvc_for_category(responses_1, responses_2, dprimes, criteria):
 def dvc_from_probs(responses, dprimes, criteria):
     rho = optimize.fmin(
         loss, [0.],
-        args=(responses, np.asarray(dprimes), np.asarray(criteria)))
+        args=(responses, np.asarray(dprimes), np.asarray(criteria)),
+        disp=0)
     return rho
 
 
