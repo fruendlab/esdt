@@ -47,9 +47,10 @@ class LogisticAfc(PsychometricFunction):
         ]
 
     def psi(self, x, param):
+        x = np.asarray(x).reshape((-1, 1))
         lm = param[2].reshape((1, -1))
         F = 1.+np.exp(- param[0].reshape((1, -1))
-                      - param[1].reshape((1, -1))*x.reshape((-1, 1)))
+                      - param[1].reshape((1, -1))*x)
         return self.guessing + (1 - self.guessing - lm)/F
 
     def get_thres(self, param, prob=0.75):
@@ -58,7 +59,7 @@ class LogisticAfc(PsychometricFunction):
         return (logit - param[0])/param[1]
 
     def get_slope(self, param, prob=0.75):
-        thres = self.get_thres(param, prob=0.6)
+        thres = self.get_thres(param, prob=prob)
         logistic = 1./(1+np.exp(-param[0] - param[1]*thres))
         return (1 - self.guessing - param[2])*logistic*(1-logistic)*param[1]
 
