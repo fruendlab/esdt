@@ -2,4 +2,5 @@
 
 This is from the paper
 
-Sebastian & Geisler (2018): Decision-Variable Correlation. J Vis (in press).
+Sebastian & Geisler (2018): Decision-Variable Correlation. J Vis, 18(4):
+3.
