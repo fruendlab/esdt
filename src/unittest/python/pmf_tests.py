@@ -9,68 +9,31 @@ from esdt import pmf
 class TestPsychometricFunction(TestCase):
 
     def setUp(self):
-        self.data = np.array([[0.4, 1, 5],
-                              [0.8, 3, 5],
-                              [1.2, 5, 5],
-                              [1.3, 4, 5]])
+        self.data = np.array([[0.4, 0.2, 5],
+                              [0.8, 0.6, 5],
+                              [1.2, 1.0, 5],
+                              [1.3, 0.8, 5]])
 
     def test_log_likelihood(self):
-        patch_psi = mock.patch('esdt.pmf.PsychometricFunction.psi')
-        patch_priors = mock.patch('esdt.pmf.PsychometricFunction.priors',
-                                  new_callable=mock.PropertyMock)
-        with patch_psi as mock_psi, patch_priors as mock_priors:
+        patch_psi = mock.patch('esdt.pmf.PsychometricFunction.predict')
+        with patch_psi as mock_psi:
             mock_psi.return_value = .5
-            ps = pmf.PsychometricFunction(self.data)
-            ll = ps.loglikelihood('ANY_PARAM')
+            ps = pmf.PsychometricFunction(lambda x, t, w: x)
+            ps.data = self.data
+            ps.negloglikelihood('ANY_PARAM', 1, 2, 3)
 
             self.assertEqual(len(mock_psi.mock_calls), 1)
             self.assertTrue(
-                np.all(self.data[:, 0] == mock_psi.mock_calls[0][1][0]))
+                np.all(1 == mock_psi.mock_calls[0][1][0]))
             self.assertEqual(mock_psi.mock_calls[0][1][1], 'ANY_PARAM')
 
-            mock_priors.assert_not_called()
-            B = stats.binom(self.data[:, 2], 0.5)
-            self.assertAlmostEqual(
-                float(ll),
-                float(B.logpmf(self.data[:, 1]).sum()))
-
     def test_posterior(self):
-        patch_ll = mock.patch('esdt.pmf.PsychometricFunction.loglikelihood')
-        patch_priors = mock.patch('esdt.pmf.PsychometricFunction.priors',
-                                  new_callable=mock.PropertyMock)
-        with patch_ll as mock_ll, patch_priors as mock_priors:
-            mock_priors.return_value = [stats.norm(0, 1)]
-            mock_ll.return_value = np.ones(5, 'd')
-            ps = pmf.PsychometricFunction(self.data)
-            p = ps.posterior([1.])
+        ps = pmf.PsychometricFunction(lambda x, t, w: x, guess=0.5)
+        ps.data = self.data
+        p = ps.posterior(np.array([[.1, .1, .1]]))
 
-            mock_ll.assert_called_once_with([1.])
-
-            self.assertAlmostEqual(1., p.max())
-            self.assertAlmostEqual(1., p.mean())
-
-    def test_abstract_psi(self):
-        ps = pmf.PsychometricFunction('ANY_DATA')
-        with self.assertRaises(NotImplementedError):
-            ps.psi('ANY_STIMULUS',
-                   'ANY_PARAMETERS')
-
-    def test_abstract_get_thres(self):
-        ps = pmf.PsychometricFunction('ANY_DATA')
-        with self.assertRaises(NotImplementedError):
-            ps.get_thres('ANY_STIMULUS',
-                         'ANY_PARAMETERS')
-
-    def test_abstract_get_slope(self):
-        ps = pmf.PsychometricFunction('ANY_DATA')
-        with self.assertRaises(NotImplementedError):
-            ps.get_slope('ANY_STIMULUS',
-                         'ANY_PARAMETERS')
-
-    def test_abstract_priors(self):
-        ps = pmf.PsychometricFunction('ANY_DATA')
-        with self.assertRaises(NotImplementedError):
-            ps.priors
+        self.assertAlmostEqual(1., p.max())
+        self.assertAlmostEqual(1., p.mean())
 
 
 class TestGrid(TestCase):
@@ -105,36 +68,3 @@ class TestIntegration(TestCase):
         m, sg = pmf.get_stats(posterior, x)
         self.assertAlmostEqual(m, 0, 6)
         self.assertAlmostEqual(sg, 1, 5)
-
-
-class TestLogisticAfc(TestCase):
-
-    def setUp(self):
-        self.param = np.array([.5, .2, .03]).T
-
-    def test_lower_bound(self):
-        ps = pmf.LogisticAfc('ANY_DATA')
-        self.assertAlmostEqual(float(ps.psi(-40, self.param)), 0.5, 3)
-
-    def test_upper_bound(self):
-        ps = pmf.LogisticAfc('ANY_DATA')
-        self.assertAlmostEqual(float(ps.psi(40, self.param)), 0.97, 3)
-
-    def test_get_thres(self):
-        ps = pmf.LogisticAfc('ANY_DATA')
-        th = ps.get_thres(self.param, 0.65)
-        self.assertAlmostEqual(ps.psi(th, self.param), 0.65)
-
-    def test_get_slope(self):
-        ps = pmf.LogisticAfc('ANY_DATA')
-        th = ps.get_thres(self.param, 0.65)
-        sl = ps.get_slope(self.param, 0.65)
-        eps = 1e-7
-        sl_ = 0.5*(ps.psi(th + eps, self.param)
-                   - ps.psi(th - eps, self.param))/eps
-        self.assertAlmostEqual(float(sl), float(sl_))
-
-    def test_priors(self):
-        ps = pmf.LogisticAfc('ANY_DATA')
-        priors = ps.priors
-        self.assertEqual(len(priors), 3)
