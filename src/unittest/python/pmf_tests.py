@@ -34,6 +34,44 @@ class TestPsychometricFunction(TestCase):
 
         self.assertAlmostEqual(1., p.max())
 
+    @mock.patch('esdt.pmf.stats.linregress')
+    def test_get_start_uses_linear_regression(self, mock_linregress):
+        mock_linregress.return_value = (1, 2, 'other')
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        start = ps.get_start(self.data[:, 0], self.data[:, 1])
+        self.assertEqual(len(mock_linregress.mock_calls), 1)
+        self.assertAlmostEqual(start[0], -2)
+        self.assertAlmostEqual(start[1], 2)
+
+    def test_fit_assigns_by_default(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        self.assertIsNone(ps.params)
+        params, ll = ps.fit(self.data)
+        self.assertIsNotNone(ps.params)
+        self.assertEqual(len(params), 3)
+        self.assertGreater(ll, 0)
+
+    def test_fit_does_not_assign_if_requested(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        self.assertIsNone(ps.params)
+        ps.fit(self.data, assign=False)
+        self.assertIsNone(ps.params)
+
+    @mock.patch('esdt.pmf.optimize.fmin')
+    def test_fit_uses_starting_values_if_specified(self, mock_fmin):
+        mock_fmin.return_value = np.ones(3, 'd')
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.fit(self.data, start='ANY_STARTING_VALUE')
+        self.assertEqual(mock_fmin.mock_calls[0][1][1], 'ANY_STARTING_VALUE')
+
+    def test_jackknife_sem_drops_evey_block(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.fit = mock.Mock()
+        ps.fit.side_effect = [(k + np.zeros(3, 'd'), 1) for k in range(5)]
+        ps.params = 'ANY_PARAMS'
+        ps.jackknife_sem(self.data)
+        self.assertEqual(len(ps.fit.mock_calls), self.data.shape[0])
+
 
 class TestGrid(TestCase):
 
@@ -67,3 +105,23 @@ class TestIntegration(TestCase):
         m, sg = pmf.get_stats(posterior, x)
         self.assertAlmostEqual(m, 0, 6)
         self.assertAlmostEqual(sg, 1, 5)
+
+
+class TestSigmoids(TestCase):
+
+    sigmoids = [pmf.gumbel, pmf.logistic]
+
+    def test_at_neg_infty(self):
+        for sigmoid in self.sigmoids:
+            with self.subTest(sigmoid=sigmoid):
+                self.assertAlmostEqual(sigmoid(-100, 0, 1), 0)
+
+    def test_at_plus_infty(self):
+        for sigmoid in self.sigmoids:
+            with self.subTest(sigmoid=sigmoid):
+                self.assertAlmostEqual(sigmoid(100, 0, 1), 1)
+
+    def test_at_zero(self):
+        for sigmoid in self.sigmoids:
+            with self.subTest(sigmoid=sigmoid):
+                self.assertAlmostEqual(sigmoid(0, 0, 1), 0.5)
