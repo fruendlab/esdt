@@ -67,9 +67,9 @@ class PsychometricFunction(object):
 
     def posterior(self, params):
         d = self.extract_data()
-        ll = np.zeros(params.shape[0], 'd')
-        for i in range(params.shape[0]):
-            ll[i] = self.negloglikelihood(params[i], d.x, d.k, d.n)
+        ll = np.zeros(params.shape[1], 'd')
+        for i in range(params.shape[1]):
+            ll[i] = self.negloglikelihood(params[:, i], d.x, d.k, d.n)
         for par, prior in zip(params, self.priors):
             ll += prior.logpmf(par)
         ll -= ll.max()  # To avoid overflow, posterior is unnormalized anyways
@@ -123,7 +123,7 @@ class PsychometricFunction(object):
 def bayesian_inference(pmf, statistics={'threshold': lambda grid: grid[0],
                                         'width': lambda grid: grid[1]}):
     grid = mkgrid(
-        [(par - 3*se, par + 3*se, 20) for par, se in zip(pmf.params, pmf.sem)]
+        *[(par - 3*se, par + 3*se, 20) for par, se in zip(pmf.params, pmf.sem)]
     )
     grid, posterior = integrate_posterior(pmf, grid)
     return {key: get_stats(posterior, getter(grid))

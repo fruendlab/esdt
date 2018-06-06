@@ -30,10 +30,9 @@ class TestPsychometricFunction(TestCase):
     def test_posterior(self):
         ps = pmf.PsychometricFunction(lambda x, t, w: x, guess=0.5)
         ps.data = self.data
-        p = ps.posterior(np.array([[.1, .1, .1]]))
+        p = ps.posterior(np.array([[.1, .1, .1]]).T)
 
         self.assertAlmostEqual(1., p.max())
-        self.assertAlmostEqual(1., p.mean())
 
 
 class TestGrid(TestCase):
