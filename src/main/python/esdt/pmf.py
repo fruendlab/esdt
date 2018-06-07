@@ -109,7 +109,11 @@ class PsychometricFunction(object):
         return guess + (1-guess-params[-1])*self.F(x, params[0], params[1])
 
     def get_start(self, x, y):
-        y_ = (y-self.guess)/(1-self.guess)
+        if self.guess is None:
+            guess = 0.02
+        else:
+            guess = self.guess
+        y_ = (y-guess)/(1-guess)
         y = y_
         i = np.logical_and(y > 0, y < 1)
         y = y[i]
@@ -117,7 +121,10 @@ class PsychometricFunction(object):
         slope, intercept = stats.linregress(x[i], logit)[:2]
         th = -intercept/slope
         w = 2/slope
-        return np.array([th, w, 0.02])
+        if self.guess is None:
+            return np.array([th, w, 0.02, 0.02])
+        else:
+            return np.array([th, w, 0.02])
 
 
 def bayesian_inference(pmf, statistics={'threshold': lambda grid: grid[0],
