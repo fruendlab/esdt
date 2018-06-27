@@ -41,8 +41,10 @@ class PsychometricFunction(object):
         self.data = None
 
     def fit(self, data, assign=True, start=None):
-        self.data = data
-        x, k, n, y = self.extract_data()
+        if assign:
+            self.data = data
+
+        x, k, n, y = self.extract_data(data)
 
         def loss(params):
             return (self.negloglikelihood(params, x, k, n)
@@ -76,12 +78,14 @@ class PsychometricFunction(object):
         np.exp(ll, ll)
         return ll
 
-    def extract_data(self):
+    def extract_data(self, data=None):
+        if data is None:
+            data = self.data
         Dataset = namedtuple('Dataset', ['x', 'k', 'n', 'y'])
-        return Dataset(self.data[:, 0],
-                       self.data[:, 1]*self.data[:, 2],
-                       self.data[:, 2],
-                       self.data[:, 1])
+        return Dataset(data[:, 0],
+                       data[:, 1]*data[:, 2],
+                       data[:, 2],
+                       data[:, 1])
 
     def jackknife_sem(self, data):
         params = []

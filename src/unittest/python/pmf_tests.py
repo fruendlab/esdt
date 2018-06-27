@@ -48,6 +48,7 @@ class TestPsychometricFunction(TestCase):
         self.assertIsNone(ps.params)
         params, ll = ps.fit(self.data)
         self.assertIsNotNone(ps.params)
+        self.assertIsNotNone(ps.data)
         self.assertEqual(len(params), 3)
         self.assertGreater(ll, 0)
 
@@ -56,6 +57,7 @@ class TestPsychometricFunction(TestCase):
         self.assertIsNone(ps.params)
         ps.fit(self.data, assign=False)
         self.assertIsNone(ps.params)
+        self.assertIsNone(ps.data)
 
     @mock.patch('esdt.pmf.optimize.fmin')
     def test_fit_uses_starting_values_if_specified(self, mock_fmin):
