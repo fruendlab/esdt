@@ -157,8 +157,9 @@ def pmfplot(pmf, **kwargs):
     idatarange = np.logical_and(x >= xmin, x <= xmax)
 
     p = pmf.predict(x)
-    se = determine_error_region(pmf, x)
-    ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
+    if pmf.sem is not None:
+        se = determine_error_region(pmf, x)
+        ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
     ax.plot(x[ibelow], p[ibelow], '--', color=col)
     ax.plot(x[iabove], p[iabove], '--', color=col)
     ax.plot(x[idatarange], p[idatarange], **kwargs)
