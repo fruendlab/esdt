@@ -44,7 +44,7 @@ Note that the data format has stimulus intensity in the first column, then
 the fraction of correct responses and then the number of responses
 collected.
 
-While we connect data, it is often useful to have a quick and dirty way to
+While we collect data, it is often useful to have a quick and dirty way to
 assess how the fitted function looks in order to decide were we need more
 samples. We implemented a jackknife procedure to get "quick-and-dirty"
 standard errors:
