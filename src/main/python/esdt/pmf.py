@@ -152,16 +152,16 @@ def pmfplot(pmf, **kwargs):
     xmin = dataset.x.min()
     xmax = dataset.x.max()
     x = kwargs.pop('x', np.mgrid[xmin:xmax:100j])
-    i0 = x <= xmin
-    i1 = x >= xmax
-    i2 = np.logical_and(x >= xmin, x <= xmax)
+    ibelow = x <= xmin
+    iabove = x >= xmax
+    idatarange = np.logical_and(x >= xmin, x <= xmax)
 
     p = pmf.predict(x)
     se = determine_error_region(pmf, x)
     ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
-    ax.plot(x[i0], p[i0], '--', color=col)
-    ax.plot(x[i1], p[i1], '--', color=col)
-    ax.plot(x[i2], p[i2], **kwargs)
+    ax.plot(x[ibelow], p[ibelow], '--', color=col)
+    ax.plot(x[iabove], p[iabove], '--', color=col)
+    ax.plot(x[idatarange], p[idatarange], **kwargs)
     ax.scatter(dataset.x, dataset.y, s=dataset.n, c=col)
 
 
