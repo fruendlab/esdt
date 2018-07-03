@@ -1,0 +1,17 @@
+language: python
+python:
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
+install:
+- pip install -U pip
+- pip install pybuilder
+- pyb install_dependencies
+script:
+- pyb run_unit_tests -X
+deploy:
+  provider: pypi
+  user: ingofruend
+  password:
+    secure: jRxT9fzuLMLVHRcRz+9tLun8MajPr29W7dycusH6WL7g3oD651zWcFpvaDJQpwszLbchA7L5sc2ivBnWJ4OmXYumKujdMclmdaXVLK5Vg1RpchX4Dfhh8TsVkAlGTZCYUfDpbtxvi1e4Kj18blOh8NiSa5VH5HE1aCgAmWKfT2+gOwQtgFifGZCxhy3TJfQ2sD7LUj2P7ZD1EURXNu0s+MnJq1Amop/GOAA56A78Jw6csooi/4aiSW1xOvZ1qRRrbLvzXhjlhyXGRnK3sHIQQmNkJmkJMyMgOxrrRIZR4C8GTt3c40AWQxfzkKshduvdWNhJ+QjzvVkktaE05/gYoY5xvvGPM93Z9KZpjxQLl+ami5oCnbMU6EBuYzZEs0E2nH5ZTdssKQYdc0BYWrzHPUxpRHNVxElkCcbm+Kz01mIguXS+FYUo7i7HP7ETY+IxMI2DwQo+M1sCJdWjE+bP1zgybcnEBYLlYay9x30OjunoUTSZl4QElrn0ov5qE7kFKauWdDznQlL/WsHg4qDZ5024lfGJE8o54TCY0w85TNmoyDQL08CEhN6in11Qa2zvz0Dvpk05odmxs++FoOvQaFmGHrOWfCOWUzeizDTHL4fhrXcvlrC8FGQHN52BxxBXr69b11pWl2HW47lKmXC533J8XxBo+Dhj2E+V0oA9WXQ=
