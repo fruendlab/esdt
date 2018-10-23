@@ -98,6 +98,7 @@ class PsychometricFunction(object):
         v = (len(params)-1)*np.var(np.array(params), 0)
         r = np.corrcoef(np.array(params).T)
         se = np.sqrt(v/len(params))
+        self._jackknife_samples = np.array(params)
         self.sem = se
         self.param_r = r
 
