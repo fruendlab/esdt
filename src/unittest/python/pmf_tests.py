@@ -66,11 +66,11 @@ class TestPsychometricFunction(TestCase):
         ps.fit(self.data, start='ANY_STARTING_VALUE')
         self.assertEqual(mock_fmin.mock_calls[0][1][1], 'ANY_STARTING_VALUE')
 
-    def test_jackknife_sem_drops_evey_block(self):
+    def test_jackknife_sem_drops_every_block(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
         ps.fit = mock.Mock()
         ps.fit.side_effect = [(k + np.zeros(3, 'd'), 1) for k in range(5)]
-        ps.params = 'ANY_PARAMS'
+        ps.params = np.zeros(3, 'd')  # Needed for influence
         ps.jackknife_sem(self.data)
         self.assertEqual(len(ps.fit.mock_calls), self.data.shape[0])
 
