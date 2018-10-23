@@ -100,7 +100,13 @@ class PsychometricFunction(object):
         se = np.sqrt(v/len(params))
         self.sem = se
         self.param_r = r
-        return se, r
+
+        # Influential observations as in Fruend, Haenel, Wichmann (2011)
+        influence = (np.array(params) - self.params.reshape(1, -1))/(1.96*se)
+        i = np.argmax(abs(influence), 1)
+        influence = np.array([infl[i_] for infl, i_ in zip(influence, i)])
+
+        return se, r, influence
 
     def predict(self, x, params=None):
         if params is None:
