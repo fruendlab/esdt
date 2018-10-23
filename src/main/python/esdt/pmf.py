@@ -98,9 +98,17 @@ class PsychometricFunction(object):
         v = (len(params)-1)*np.var(np.array(params), 0)
         r = np.corrcoef(np.array(params).T)
         se = np.sqrt(v/len(params))
+        self._jackknife_samples = np.array(params)
         self.sem = se
         self.param_r = r
-        return se, r
+
+        # Influential observations as in Fruend, Haenel, Wichmann (2011)
+        influence = (np.array(params) - self.params.reshape(1, -1))/(1.96*se)
+        i = np.argmax(abs(influence), 1)
+        influence = np.array([infl[i_] for infl, i_ in zip(influence, i)])
+        self.influence = influence
+
+        return se, r, influence
 
     def predict(self, x, params=None):
         if params is None:
@@ -150,6 +158,11 @@ def pmfplot(pmf, **kwargs):
         else:
             raise RuntimeError(
                 'Trying to use pylab function by pylab does not exist')
+    if 'scatter' in kwargs:
+        draw_scatter = kwargs.pop('draw_scatter')
+    else:
+        draw_scatter = 'dots'
+
     col = kwargs.setdefault('color', 'black')
 
     dataset = pmf.extract_data()
@@ -167,7 +180,11 @@ def pmfplot(pmf, **kwargs):
     ax.plot(x[ibelow], p[ibelow], '--', color=col)
     ax.plot(x[iabove], p[iabove], '--', color=col)
     ax.plot(x[idatarange], p[idatarange], **kwargs)
-    ax.scatter(dataset.x, dataset.y, s=dataset.n, c=col)
+    if draw_scatter in ['dots', 'influence']:
+        ax.scatter(dataset.x, dataset.y, s=dataset.n, c=col)
+        if draw_scatter == 'influence':
+            for x, y, i in zip(dataset.x, dataset.y, pmf.influence):
+                pl.text(x, y, '{:.2f}'.format(i), horizontalalignment='center')
 
 
 def determine_error_region(pmf, x, n=50):

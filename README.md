@@ -50,14 +50,16 @@ samples. We implemented a jackknife procedure to get "quick-and-dirty"
 standard errors:
 
 ```python
->>> se, r = psychometric.jackknife_sem(data)
+>>> se, r, infl = psychometric.jackknife_sem(data)
 
 ```
 
 This will give you a very rough idea of the standard error and of
-correlations between parameters. However, these should *not* be used as
-final estimates. In general, it seems that Bayesian inference tends to
-give more honest estimates of confidence for parameters of the
+correlations between parameters. Furthermore, the third output is
+a measure for the influence of the individual blocks in your data
+structure. Note that standard errors based on jackknife should *not* be
+used as final estimates. In general, it seems that Bayesian inference
+tends to give more honest estimates of confidence for parameters of the
 psychometric function.
 
 In order to refine your analysis using Bayesian inference, you can now
