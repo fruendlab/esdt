@@ -150,6 +150,20 @@ def bayesian_inference(pmf, statistics={'threshold': lambda grid: grid[0],
 
 
 def pmfplot(pmf, **kwargs):
+    """Draw a canonic psychometric function plot
+
+    Args:
+        pmf:
+            fitted psychometric function model
+        draw_scatter:
+            Either of the following
+                - 'none': No data points are shown
+                - 'dots': Show individual block data as dots in the plot
+                - 'influence': Overlay influence numbers from Fruend, Haenel,
+                    Wichmann (2011)
+        axes:
+            matplotlib axes to use for the plot
+    """
     if 'axes' in kwargs:
         ax = kwargs.pop('axes')
     else:
