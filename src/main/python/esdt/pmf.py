@@ -158,7 +158,7 @@ def pmfplot(pmf, **kwargs):
         else:
             raise RuntimeError(
                 'Trying to use pylab function by pylab does not exist')
-    if 'scatter' in kwargs:
+    if 'draw_scatter' in kwargs:
         draw_scatter = kwargs.pop('draw_scatter')
     else:
         draw_scatter = 'dots'
