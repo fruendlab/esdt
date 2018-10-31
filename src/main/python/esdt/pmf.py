@@ -29,7 +29,7 @@ def logistic(x, th, w):
 
 class PsychometricFunction(object):
 
-    def __init__(self, F, guess=None):
+    def __init__(self, F, guess=None, transform=None):
         self.F = F
         self.start = None
         self.params = None
@@ -39,6 +39,10 @@ class PsychometricFunction(object):
         self.priors = ()
         self.guess = guess
         self.data = None
+        if transform is None:
+            self.transform = lambda x: x
+        else:
+            self.transform = transform
 
     def fit(self, data, assign=True, start=None):
         if assign:
@@ -82,7 +86,7 @@ class PsychometricFunction(object):
         if data is None:
             data = self.data
         Dataset = namedtuple('Dataset', ['x', 'k', 'n', 'y'])
-        return Dataset(data[:, 0],
+        return Dataset(self.transform(data[:, 0]),
                        data[:, 1]*data[:, 2],
                        data[:, 2],
                        data[:, 1])
@@ -118,7 +122,8 @@ class PsychometricFunction(object):
             params = params[1:]
         else:
             guess = self.guess
-        return guess + (1-guess-params[-1])*self.F(x, params[0], params[1])
+        F = self.F(self.transform(x), params[0], params[1])
+        return guess + (1-guess-params[-1])*F
 
     def get_start(self, x, y):
         if self.guess is None:
