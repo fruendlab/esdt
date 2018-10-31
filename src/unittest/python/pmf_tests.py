@@ -104,6 +104,8 @@ class TestPsychometricFunction(TestCase):
         p, D = ps.deviance_test(self.data, nsamples=20)
         self.assertSequenceEqual(D.shape, (20,))
         self.assertIsInstance(p, float)
+        self.assertGreaterEqual(p, 0)
+        self.assertLessEqual(p, 1)
 
 
 class TestGrid(TestCase):
