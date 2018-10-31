@@ -163,3 +163,38 @@ class TestSigmoids(TestCase):
         for sigmoid in self.sigmoids:
             with self.subTest(sigmoid=sigmoid):
                 self.assertAlmostEqual(sigmoid(0, 0, 1), 0.5)
+
+
+class TestDeviance(TestCase):
+
+    def test_should_be_zero_for_perfect_fit(self):
+        k = np.ones(4, 'd')
+        n = np.ones(4, 'd') * 2
+        p = np.array([0.5]*4)
+        self.assertAlmostEqual(pmf.deviance(k, n, p), 0)
+
+    def test_should_work_with_integers(self):
+        k = 1
+        n = 2
+        p = 0.5
+        self.assertAlmostEqual(pmf.deviance(k, n, p), 0)
+
+    def test_should_be_gt_0_for_imperfect_fit(self):
+        k = np.array([1, 2, 3, 4], 'd')
+        n = np.array([5, 5, 5, 5], 'd')
+        p = np.array([.5]*4)
+        self.assertGreater(pmf.deviance(k, n, p), 0)
+
+    def test_should_broadcast_with_arrays(self):
+        k = np.ones((20, 4), 'd')
+        n = np.ones(4, 'd') * 2
+        p = np.array([.5]*4)
+        D = pmf.deviance(k, n, p, axis=1)
+        self.assertAlmostEqual(D.max(), 0)
+        self.assertSequenceEqual(D.shape, (20,))
+
+    def test_should_work_with_integer_arrays(self):
+        k = np.ones(4, 'i')
+        n = np.ones(4, 'i') * 2
+        p = np.array([0.5]*4)
+        self.assertAlmostEqual(pmf.deviance(k, n, p), 0)
