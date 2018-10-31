@@ -98,6 +98,13 @@ class TestPsychometricFunction(TestCase):
                                        'ANY_WIDTH')
         mock_log.assert_called_once_with('ANY_X_VALUE')
 
+    def test_deviance_test(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.params = np.array([1., 1., .03])
+        p, D = ps.deviance_test(self.data, nsamples=20)
+        self.assertSequenceEqual(D.shape, (20,))
+        self.assertIsInstance(p, float)
+
 
 class TestGrid(TestCase):
 
