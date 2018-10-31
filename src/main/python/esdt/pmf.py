@@ -139,6 +139,13 @@ class PsychometricFunction(object):
             return np.array([th, w, 0.02])
 
 
+def deviance(k, n, p, axis=0, clip=1e-7):
+    p0 = np.clip(k/n, clip, 1-clip)
+    lfit = np.sum(k*np.log(p) + (n-k)*np.log1p(-p), axis=axis)
+    lsat = np.sum(k*np.log(p0) + (n-k)*np.log1p(-p0), axis=axis)
+    return 2*(lsat - lfit)
+
+
 def bayesian_inference(pmf, statistics={'threshold': lambda grid: grid[0],
                                         'width': lambda grid: grid[1]}):
     grid = mkgrid(
