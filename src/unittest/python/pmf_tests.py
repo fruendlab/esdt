@@ -74,6 +74,13 @@ class TestPsychometricFunction(TestCase):
         ps.jackknife_sem(self.data)
         self.assertEqual(len(ps.fit.mock_calls), self.data.shape[0])
 
+    def test_deviance_test(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.params = np.array([1., 1., .03])
+        p, D = ps.deviance_test(self.data, nsamples=20)
+        self.assertSequenceEqual(D.shape, (20,))
+        self.assertIsInstance(p, float)
+
 
 class TestGrid(TestCase):
 

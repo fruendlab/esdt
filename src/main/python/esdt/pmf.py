@@ -110,6 +110,16 @@ class PsychometricFunction(object):
 
         return se, r, influence
 
+    def deviance_test(self, data, nsamples=2000):
+        raw_data = self.extract_data(data)
+        p = self.predict(raw_data.x)
+        k = np.random.binomial(raw_data.n.astype('i'),
+                               p, size=(nsamples, len(p)))
+        self.deviance_samples = deviance(k, raw_data.n, p, axis=1)
+        self.deviance = deviance(raw_data.k, raw_data.n, p)
+        ecdf = np.mean(self.deviance_samples <= self.deviance)
+        return ecdf, self.deviance_samples
+
     def predict(self, x, params=None):
         if params is None:
             params = self.params
