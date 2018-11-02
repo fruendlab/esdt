@@ -86,7 +86,7 @@ class PsychometricFunction(object):
         if data is None:
             data = self.data
         Dataset = namedtuple('Dataset', ['x', 'k', 'n', 'y'])
-        return Dataset(self.transform(data[:, 0]),
+        return Dataset(data[:, 0],
                        data[:, 1]*data[:, 2],
                        data[:, 2],
                        data[:, 1])
@@ -135,7 +135,7 @@ class PsychometricFunction(object):
         i = np.logical_and(y > 0, y < 1)
         y = y[i]
         logit = np.log(y/(1-y))
-        slope, intercept = stats.linregress(x[i], logit)[:2]
+        slope, intercept = stats.linregress(self.transform(x[i]), logit)[:2]
         th = -intercept/slope
         w = 2/slope
         if self.guess is None:
