@@ -29,7 +29,7 @@ def logistic(x, th, w):
 
 class PsychometricFunction(object):
 
-    def __init__(self, F, guess=None):
+    def __init__(self, F, guess=None, transform=None):
         self.F = F
         self.start = None
         self.params = None
@@ -39,6 +39,10 @@ class PsychometricFunction(object):
         self.priors = ()
         self.guess = guess
         self.data = None
+        if transform is None:
+            self.transform = lambda x: x
+        else:
+            self.transform = transform
 
     def fit(self, data, assign=True, start=None):
         if assign:
@@ -118,7 +122,8 @@ class PsychometricFunction(object):
             params = params[1:]
         else:
             guess = self.guess
-        return guess + (1-guess-params[-1])*self.F(x, params[0], params[1])
+        F = self.F(self.transform(x), params[0], params[1])
+        return guess + (1-guess-params[-1])*F
 
     def get_start(self, x, y):
         if self.guess is None:
@@ -130,7 +135,7 @@ class PsychometricFunction(object):
         i = np.logical_and(y > 0, y < 1)
         y = y[i]
         logit = np.log(y/(1-y))
-        slope, intercept = stats.linregress(x[i], logit)[:2]
+        slope, intercept = stats.linregress(self.transform(x[i]), logit)[:2]
         th = -intercept/slope
         w = 2/slope
         if self.guess is None:
