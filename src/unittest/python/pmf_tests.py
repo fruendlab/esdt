@@ -83,6 +83,23 @@ class TestPsychometricFunction(TestCase):
         self.assertGreaterEqual(p, 0)
         self.assertLessEqual(p, 1)
 
+    def test_transform_expresses_threshold_transformed(self):
+        ps = pmf.PsychometricFunction(pmf.gumbel, 0.5, np.log10)
+        self.data[:, 0] = [.01, .05, .1, .5]
+        params, ll = ps.fit(self.data)
+        self.assertGreater(params[0], -100)
+        self.assertLess(params[0], np.log10(0.5))
+
+    def test_transform_results_in_predictions_on_transformed_values(self):
+        mock_F = mock.Mock(return_value=0.5)
+        mock_log = mock.Mock()
+        ps = pmf.PsychometricFunction(mock_F, 0.5, mock_log)
+        ps.predict('ANY_X_VALUE', ['ANY_THRES', 'ANY_WIDTH', .05])
+        mock_F.assert_called_once_with(mock_log.return_value,
+                                       'ANY_THRES',
+                                       'ANY_WIDTH')
+        mock_log.assert_called_once_with('ANY_X_VALUE')
+
 
 class TestGrid(TestCase):
 
