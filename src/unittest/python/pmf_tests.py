@@ -66,6 +66,13 @@ class TestPsychometricFunction(TestCase):
         ps.ml_fit(self.data, start='ANY_STARTING_VALUE')
         self.assertEqual(mock_fmin.mock_calls[0][1][1], 'ANY_STARTING_VALUE')
 
+    def test_fit_is_deprecated(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.ml_fit = mock.Mock()
+        with self.assertWarns(DeprecationWarning):
+            ps.fit('ANY_DATA', start='ANY_START')
+        ps.ml_fit.assert_called_once_with('ANY_DATA', start='ANY_START')
+
     def test_jackknife_sem_drops_every_block(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
         ps.ml_fit = mock.Mock()

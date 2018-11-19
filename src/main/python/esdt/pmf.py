@@ -1,6 +1,7 @@
 from collections import namedtuple
 import numpy as np
 from scipy import stats, optimize
+import warnings
 try:
     import pylab as pl
     HASPYLAB = True
@@ -62,6 +63,12 @@ class PsychometricFunction(object):
             self.params = params
             self.loglikelihood = loglikelihood
         return params, loglikelihood
+
+    def fit(self, *args, **kwargs):
+        warnings.warn(
+            'The fit() method is deprecated. Use ml_fit() instead.',
+            DeprecationWarning)
+        return self.ml_fit(*args, **kwargs)
 
     def negloglikelihood(self, params, x, k, n):
         p = self.predict(x, params)
