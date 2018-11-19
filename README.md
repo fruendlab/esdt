@@ -72,3 +72,5 @@ intervals for a number of parameters of interest:
 {'threshold': (0.4..., 0.0...), 'width': ...}
 
 ```
+
+Also see the examples in the integration tests folder for more details.
