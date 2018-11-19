@@ -139,17 +139,27 @@ class PsychometricFunction(object):
             return np.array([th, w, 0.02])
 
 
-def bayesian_inference(pmf, statistics={'threshold': lambda grid: grid[0],
-                                        'width': lambda grid: grid[1]}):
+def bayesian_inference(pmf,
+                       statistics={'threshold': lambda grid: grid[0],
+                                   'width': lambda grid: grid[1]},
+                       nexamples=0):
     grid = mkgrid(
         *[(par - 3*se, par + 3*se, 20) for par, se in zip(pmf.params, pmf.sem)]
     )
     grid, posterior = integrate_posterior(pmf, grid)
-    return {key: get_stats(posterior, getter(grid))
-            for key, getter in statistics.items()}
+    if nexamples:
+        idx = np.random.multinomial(1, posterior, size=nexamples)
+        idx = np.where(idx > 0)
+        idx = idx[1]
+        return ({key: get_stats(posterior, getter(grid))
+                 for key, getter in statistics.items()},
+                zip(grid[:, idx].T, posterior[idx]))
+    else:
+        return {key: get_stats(posterior, getter(grid))
+                for key, getter in statistics.items()}
 
 
-def pmfplot(pmf, **kwargs):
+def pmfplot(pmf, examples=None, **kwargs):
     """Draw a canonic psychometric function plot
 
     Args:
