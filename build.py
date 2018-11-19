@@ -7,6 +7,7 @@ use_plugin("python.install_dependencies")
 use_plugin("python.flake8")
 use_plugin("python.coverage")
 use_plugin("python.distutils")
+use_plugin("python.integrationtest")
 
 
 name = "esdt"
@@ -18,3 +19,4 @@ version = count_travis()
 def set_properties(project):
     project.depends_on('numpy')
     project.depends_on('scipy')
+    project.set_property('integrationtest_file_glob', '*_example.py')
