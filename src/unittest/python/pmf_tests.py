@@ -46,7 +46,7 @@ class TestPsychometricFunction(TestCase):
     def test_fit_assigns_by_default(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
         self.assertIsNone(ps.params)
-        params, ll = ps.fit(self.data)
+        params, ll = ps.ml_fit(self.data)
         self.assertIsNotNone(ps.params)
         self.assertIsNotNone(ps.data)
         self.assertEqual(len(params), 3)
@@ -55,7 +55,7 @@ class TestPsychometricFunction(TestCase):
     def test_fit_does_not_assign_if_requested(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
         self.assertIsNone(ps.params)
-        ps.fit(self.data, assign=False)
+        ps.ml_fit(self.data, assign=False)
         self.assertIsNone(ps.params)
         self.assertIsNone(ps.data)
 
@@ -63,16 +63,16 @@ class TestPsychometricFunction(TestCase):
     def test_fit_uses_starting_values_if_specified(self, mock_fmin):
         mock_fmin.return_value = np.ones(3, 'd')
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
-        ps.fit(self.data, start='ANY_STARTING_VALUE')
+        ps.ml_fit(self.data, start='ANY_STARTING_VALUE')
         self.assertEqual(mock_fmin.mock_calls[0][1][1], 'ANY_STARTING_VALUE')
 
     def test_jackknife_sem_drops_every_block(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
-        ps.fit = mock.Mock()
-        ps.fit.side_effect = [(k + np.zeros(3, 'd'), 1) for k in range(5)]
+        ps.ml_fit = mock.Mock()
+        ps.ml_fit.side_effect = [(k + np.zeros(3, 'd'), 1) for k in range(5)]
         ps.params = np.zeros(3, 'd')  # Needed for influence
         ps.jackknife_sem(self.data)
-        self.assertEqual(len(ps.fit.mock_calls), self.data.shape[0])
+        self.assertEqual(len(ps.ml_fit.mock_calls), self.data.shape[0])
 
 
 class TestGrid(TestCase):

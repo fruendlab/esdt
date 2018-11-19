@@ -40,7 +40,7 @@ class PsychometricFunction(object):
         self.guess = guess
         self.data = None
 
-    def fit(self, data, assign=True, start=None):
+    def ml_fit(self, data, assign=True, start=None):
         if assign:
             self.data = data
 
@@ -92,9 +92,9 @@ class PsychometricFunction(object):
         for i in range(data.shape[0]):
             mask = np.ones(data.shape[0], bool)
             mask[i] = False
-            params.append(self.fit(data[mask],
-                                   assign=False,
-                                   start=self.params)[0])
+            params.append(self.ml_fit(data[mask],
+                                      assign=False,
+                                      start=self.params)[0])
         v = (len(params)-1)*np.var(np.array(params), 0)
         r = np.corrcoef(np.array(params).T)
         se = np.sqrt(v/len(params))
