@@ -197,18 +197,31 @@ def pmfplot(pmf, examples=None, **kwargs):
     iabove = x >= xmax
     idatarange = np.logical_and(x >= xmin, x <= xmax)
 
+    for ex in examples:
+        p = pmf.predict(x, ex[0])
+        plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
+                        alpha=400*ex[1], **kwargs)
+
     p = pmf.predict(x)
-    if pmf.sem is not None:
-        se = determine_error_region(pmf, x)
-        ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
-    ax.plot(x[ibelow], p[ibelow], '--', color=col)
-    ax.plot(x[iabove], p[iabove], '--', color=col)
-    ax.plot(x[idatarange], p[idatarange], **kwargs)
+    if ex is None:
+        if pmf.sem is not None:
+            se = determine_error_region(pmf, x)
+            ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
+    plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
+                    **kwargs)
+
     if draw_scatter in ['dots', 'influence']:
         ax.scatter(dataset.x, dataset.y, s=dataset.n, c=col)
         if draw_scatter == 'influence':
             for x, y, i in zip(dataset.x, dataset.y, pmf.influence):
                 pl.text(x, y, '{:.2f}'.format(i), horizontalalignment='center')
+
+
+def plot_single_pmf(ax, x, p, ibelow, iabove, idatarange, **kwargs):
+    col = kwargs['color']
+    ax.plot(x[ibelow], p[ibelow], '--', color=col)
+    ax.plot(x[iabove], p[iabove], '--', color=col)
+    ax.plot(x[idatarange], p[idatarange], **kwargs)
 
 
 def determine_error_region(pmf, x, n=50):
