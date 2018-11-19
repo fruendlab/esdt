@@ -73,7 +73,7 @@ class PsychometricFunction(object):
         for i in range(params.shape[1]):
             ll[i] = self.negloglikelihood(params[:, i], d.x, d.k, d.n)
         for par, prior in zip(params, self.priors):
-            ll += prior.logpmf(par)
+            ll += prior.logpdf(par)
         ll -= ll.max()  # To avoid overflow, posterior is unnormalized anyways
         np.exp(ll, ll)
         return ll
