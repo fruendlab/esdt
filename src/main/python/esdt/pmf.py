@@ -202,16 +202,17 @@ def pmfplot(pmf, examples=None, **kwargs):
     iabove = x >= xmax
     idatarange = np.logical_and(x >= xmin, x <= xmax)
 
-    for ex in examples:
-        p = pmf.predict(x, ex[0])
-        plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
-                        alpha=400*ex[1], **kwargs)
-
     p = pmf.predict(x)
-    if ex is None:
+    if examples is None:
         if pmf.sem is not None:
             se = determine_error_region(pmf, x)
             ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
+    else:
+        for ex in examples:
+            p = pmf.predict(x, ex[0])
+            plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
+                            alpha=400*ex[1], **kwargs)
+
     plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
                     **kwargs)
 
