@@ -148,15 +148,20 @@ def bayesian_inference(pmf,
     )
     grid, posterior = integrate_posterior(pmf, grid)
     if nexamples:
-        idx = np.random.multinomial(1, posterior, size=nexamples)
-        idx = np.where(idx > 0)
-        idx = idx[1]
+        idx = sample_gridpoints(nexamples, posterior)
         return ({key: get_stats(posterior, getter(grid))
                  for key, getter in statistics.items()},
                 zip(grid[:, idx].T, posterior[idx]))
     else:
         return {key: get_stats(posterior, getter(grid))
                 for key, getter in statistics.items()}
+
+
+def sample_gridpoints(nexamples, posterior):
+    idx = np.random.multinomial(1, posterior, size=nexamples)
+    idx = np.where(idx > 0)
+    idx = idx[1]
+    return idx
 
 
 def pmfplot(pmf, examples=None, **kwargs):

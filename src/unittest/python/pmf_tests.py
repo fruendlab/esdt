@@ -86,6 +86,18 @@ class TestGrid(TestCase):
         self.assertSequenceEqual(grd.shape, (3, 5, 5, 5))
 
 
+class TestSampleGridpoints(TestCase):
+
+    @mock.patch('esdt.pmf.np.random.multinomial')
+    def test_shapes(self, mock_multinomial):
+        mock_multinomial.return_value = np.eye(4)
+        posterior = [.1, .1, .1, .7]
+        idx = pmf.sample_gridpoints(4, posterior)
+        self.assertSequenceEqual(idx.shape, (4,))
+        mock_multinomial.assert_called_once_with(1, posterior, size=4)
+        self.assertSequenceEqual(idx.tolist(), [0, 1, 2, 3])
+
+
 class TestIntegration(TestCase):
 
     def test_integration(self):
