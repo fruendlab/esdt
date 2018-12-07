@@ -46,7 +46,7 @@ class TestPsychometricFunction(TestCase):
     def test_fit_assigns_by_default(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
         self.assertIsNone(ps.params)
-        params, ll = ps.fit(self.data)
+        params, ll = ps.ml_fit(self.data)
         self.assertIsNotNone(ps.params)
         self.assertIsNotNone(ps.data)
         self.assertEqual(len(params), 3)
@@ -55,7 +55,7 @@ class TestPsychometricFunction(TestCase):
     def test_fit_does_not_assign_if_requested(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
         self.assertIsNone(ps.params)
-        ps.fit(self.data, assign=False)
+        ps.ml_fit(self.data, assign=False)
         self.assertIsNone(ps.params)
         self.assertIsNone(ps.data)
 
@@ -63,16 +63,23 @@ class TestPsychometricFunction(TestCase):
     def test_fit_uses_starting_values_if_specified(self, mock_fmin):
         mock_fmin.return_value = np.ones(3, 'd')
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
-        ps.fit(self.data, start='ANY_STARTING_VALUE')
+        ps.ml_fit(self.data, start='ANY_STARTING_VALUE')
         self.assertEqual(mock_fmin.mock_calls[0][1][1], 'ANY_STARTING_VALUE')
+
+    def test_fit_is_deprecated(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.ml_fit = mock.Mock()
+        with self.assertWarns(DeprecationWarning):
+            ps.fit('ANY_DATA', start='ANY_START')
+        ps.ml_fit.assert_called_once_with('ANY_DATA', start='ANY_START')
 
     def test_jackknife_sem_drops_every_block(self):
         ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
-        ps.fit = mock.Mock()
-        ps.fit.side_effect = [(k + np.zeros(3, 'd'), 1) for k in range(5)]
+        ps.ml_fit = mock.Mock()
+        ps.ml_fit.side_effect = [(k + np.zeros(3, 'd'), 1) for k in range(5)]
         ps.params = np.zeros(3, 'd')  # Needed for influence
         ps.jackknife_sem(self.data)
-        self.assertEqual(len(ps.fit.mock_calls), self.data.shape[0])
+        self.assertEqual(len(ps.ml_fit.mock_calls), self.data.shape[0])
 
     def test_transform_expresses_threshold_transformed(self):
         ps = pmf.PsychometricFunction(pmf.gumbel, 0.5, np.log10)
@@ -101,6 +108,18 @@ class TestGrid(TestCase):
     def test_more_dims(self):
         grd = pmf.mkgrid((-10, 10, 5), (-10, 10, 5), (1e-5, .2, 5))
         self.assertSequenceEqual(grd.shape, (3, 5, 5, 5))
+
+
+class TestSampleGridpoints(TestCase):
+
+    @mock.patch('esdt.pmf.np.random.multinomial')
+    def test_shapes(self, mock_multinomial):
+        mock_multinomial.return_value = np.eye(4)
+        posterior = [.1, .1, .1, .7]
+        idx = pmf.sample_gridpoints(4, posterior)
+        self.assertSequenceEqual(idx.shape, (4,))
+        mock_multinomial.assert_called_once_with(1, posterior, size=4)
+        self.assertSequenceEqual(idx.tolist(), [0, 1, 2, 3])
 
 
 class TestIntegration(TestCase):

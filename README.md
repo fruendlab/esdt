@@ -36,7 +36,7 @@ Create a 2AFC psychometric function with logistic sigmoid.
 ...                  [0.3, 0.6, 5],
 ...                  [0.4, 0.8, 5],
 ...                  [0.6, 1.0, 5]])
->>> params, ll = psychometric.fit(data)
+>>> params, ll = psychometric.ml_fit(data)
 
 ```
 
@@ -72,3 +72,5 @@ intervals for a number of parameters of interest:
 {'threshold': (0.4..., 0.0...), 'width': ...}
 
 ```
+
+Also see the examples in the integration tests folder for more details.

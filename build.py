@@ -19,3 +19,4 @@ version = count_travis()
 def set_properties(project):
     project.depends_on('numpy')
     project.depends_on('scipy')
+    project.set_property('integrationtest_file_glob', '*_example.py')

@@ -1,6 +1,7 @@
 from collections import namedtuple
 import numpy as np
 from scipy import stats, optimize
+import warnings
 try:
     import pylab as pl
     HASPYLAB = True
@@ -44,7 +45,7 @@ class PsychometricFunction(object):
         else:
             self.transform = transform
 
-    def fit(self, data, assign=True, start=None):
+    def ml_fit(self, data, assign=True, start=None):
         if assign:
             self.data = data
 
@@ -67,6 +68,12 @@ class PsychometricFunction(object):
             self.loglikelihood = loglikelihood
         return params, loglikelihood
 
+    def fit(self, *args, **kwargs):
+        warnings.warn(
+            'The fit() method is deprecated. Use ml_fit() instead.',
+            DeprecationWarning)
+        return self.ml_fit(*args, **kwargs)
+
     def negloglikelihood(self, params, x, k, n):
         p = self.predict(x, params)
         return np.sum(-k*safe_log(p) - (n-k)*safe_log(1-p))
@@ -77,7 +84,7 @@ class PsychometricFunction(object):
         for i in range(params.shape[1]):
             ll[i] = self.negloglikelihood(params[:, i], d.x, d.k, d.n)
         for par, prior in zip(params, self.priors):
-            ll += prior.logpmf(par)
+            ll += prior.logpdf(par)
         ll -= ll.max()  # To avoid overflow, posterior is unnormalized anyways
         np.exp(ll, ll)
         return ll
@@ -96,9 +103,9 @@ class PsychometricFunction(object):
         for i in range(data.shape[0]):
             mask = np.ones(data.shape[0], bool)
             mask[i] = False
-            params.append(self.fit(data[mask],
-                                   assign=False,
-                                   start=self.params)[0])
+            params.append(self.ml_fit(data[mask],
+                                      assign=False,
+                                      start=self.params)[0])
         v = (len(params)-1)*np.var(np.array(params), 0)
         r = np.corrcoef(np.array(params).T)
         se = np.sqrt(v/len(params))
@@ -144,17 +151,32 @@ class PsychometricFunction(object):
             return np.array([th, w, 0.02])
 
 
-def bayesian_inference(pmf, statistics={'threshold': lambda grid: grid[0],
-                                        'width': lambda grid: grid[1]}):
+def bayesian_inference(pmf,
+                       statistics={'threshold': lambda grid: grid[0],
+                                   'width': lambda grid: grid[1]},
+                       nexamples=0):
     grid = mkgrid(
         *[(par - 3*se, par + 3*se, 20) for par, se in zip(pmf.params, pmf.sem)]
     )
     grid, posterior = integrate_posterior(pmf, grid)
-    return {key: get_stats(posterior, getter(grid))
-            for key, getter in statistics.items()}
+    if nexamples:
+        idx = sample_gridpoints(nexamples, posterior)
+        return ({key: get_stats(posterior, getter(grid))
+                 for key, getter in statistics.items()},
+                zip(grid[:, idx].T, posterior[idx]))
+    else:
+        return {key: get_stats(posterior, getter(grid))
+                for key, getter in statistics.items()}
 
 
-def pmfplot(pmf, **kwargs):
+def sample_gridpoints(nexamples, posterior):
+    idx = np.random.multinomial(1, posterior, size=nexamples)
+    idx = np.where(idx > 0)
+    idx = idx[1]
+    return idx
+
+
+def pmfplot(pmf, examples=None, **kwargs):
     """Draw a canonic psychometric function plot
 
     Args:
@@ -193,17 +215,31 @@ def pmfplot(pmf, **kwargs):
     idatarange = np.logical_and(x >= xmin, x <= xmax)
 
     p = pmf.predict(x)
-    if pmf.sem is not None:
-        se = determine_error_region(pmf, x)
-        ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
-    ax.plot(x[ibelow], p[ibelow], '--', color=col)
-    ax.plot(x[iabove], p[iabove], '--', color=col)
-    ax.plot(x[idatarange], p[idatarange], **kwargs)
+    if examples is None:
+        if pmf.sem is not None:
+            se = determine_error_region(pmf, x)
+            ax.fill_between(x, p+se, p-se, facecolor=col, alpha=0.5)
+    else:
+        for ex in examples:
+            p = pmf.predict(x, ex[0])
+            plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
+                            alpha=400*ex[1], **kwargs)
+
+    plot_single_pmf(ax, x, p, ibelow, iabove, idatarange,
+                    **kwargs)
+
     if draw_scatter in ['dots', 'influence']:
         ax.scatter(dataset.x, dataset.y, s=dataset.n, c=col)
         if draw_scatter == 'influence':
             for x, y, i in zip(dataset.x, dataset.y, pmf.influence):
                 pl.text(x, y, '{:.2f}'.format(i), horizontalalignment='center')
+
+
+def plot_single_pmf(ax, x, p, ibelow, iabove, idatarange, **kwargs):
+    col = kwargs['color']
+    ax.plot(x[ibelow], p[ibelow], '--', color=col)
+    ax.plot(x[iabove], p[iabove], '--', color=col)
+    ax.plot(x[idatarange], p[idatarange], **kwargs)
 
 
 def determine_error_region(pmf, x, n=50):
