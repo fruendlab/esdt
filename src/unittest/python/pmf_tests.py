@@ -81,6 +81,15 @@ class TestPsychometricFunction(TestCase):
         ps.jackknife_sem(self.data)
         self.assertEqual(len(ps.ml_fit.mock_calls), self.data.shape[0])
 
+    def test_deviance_test(self):
+        ps = pmf.PsychometricFunction(pmf.logistic, 0.5)
+        ps.params = np.array([1., 1., .03])
+        p, D = ps.deviance_test(self.data, nsamples=20)
+        self.assertSequenceEqual(D.shape, (20,))
+        self.assertIsInstance(p, float)
+        self.assertGreaterEqual(p, 0)
+        self.assertLessEqual(p, 1)
+
     def test_transform_expresses_threshold_transformed(self):
         ps = pmf.PsychometricFunction(pmf.gumbel, 0.5, np.log10)
         self.data[:, 0] = [.01, .05, .1, .5]
